@@ -17,6 +17,17 @@
     this will take care of caching and cache-busting automatically --}}
     <link rel="stylesheet" type="text/css" href="{{asset "built/screen.css"}}" />
 
+
+<script>
+{{#if @member.paid}}
+var access = 'paid';
+{{else if @member}}
+var access = 'member';
+{{else}}
+var access = 'public';
+{{/if}}
+</script>
+
     {{!-- This tag outputs all your advanced SEO meta, structured data, and other important settings,
     it should always be the last tag before the closing head tag --}}
     {{ghost_head}}
@@ -108,7 +119,7 @@
 {{/is}}
 
 {{!-- Scripts - handle responsive videos, infinite scroll, floating headers, and galleries --}}
-<script src="{{asset "built/casper.js"}}" defer></script>
+<script src="{{asset "built/casper.js"}}" defer data-cfasync="false"></script>
 
 {{!-- Ghost outputs required functional scripts with this tag - it should always be the last thing before the closing body tag --}}
 {{ghost_foot}}

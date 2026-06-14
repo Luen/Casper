@@ -40,17 +40,139 @@ into the {body} of the default.hbs template --}}
 </div>
 
 {{!-- The main content area --}}
-<main id="site-main" class="site-main outer">
-<div class="inner posts">
+<main id="site-main" class="site-main">
 
+    <div id="banners">
+        <div class="banner" style="background-image:url('https://images.wanderstories.space/content/images/size/w2000/2021/06/garrawalt-creek-canyon-girringun-national-park.jpg.jpg')">
+            <div class="banner-inner">
+                <div class="banner-content">
+                    <h2 class="banner-title"><a href="{{@site.url}}/all-articles/">All Articles (<span id="all">{{#get "posts" limit="1" as |posts pages|}}{{pages.total}}{{/get}}</span>)</a></h2>
+                    <p>Here's a listing of all places documented to our high standards.</p>
+                    <a class="button" href="{{@site.url}}/all-articles/">view</a>
+                </div>
+            </div>
+        </div>
+        <div class="banner" style="background-image:url('https://images.wanderstories.space/content/images/size/w2000/2017/04/North-and-South-Sentinels-and-Frederick-Peak.jpg')">
+            <div class="banner-inner">
+                <div class="banner-content">
+                    <h2 class="banner-title"><a href="{{@site.url}}/free/">Free Articles (<span id="free">{{#get "posts" limit="1" filter="visibility:public" as |posts pages|}}{{pages.total}}{{/get}}</span>)</a></h2>
+                    <p>Over <span id="percentage">85%</span> of our content is free, from deep gorges and emerald blue swimming holes to impressive waterfalls and mountain summits with spectacular views of the surrounding countryside.</p>
+                    <a class="button" href="{{@site.url}}/free/">view</a>
+                </div>
+            </div>
+        </div>
+        <div class="banner banner--members" style="background-image:url('https://images.wanderstories.space/content/images/size/w2000/2019/06/banksia-mount-diamantina.jpg')">
+            <div class="banner-inner">
+                <div class="banner-content">
+                    <h2 class="banner-title"><a href="{{@site.url}}/members/">Member Articles (<span id="members">{{#get "posts" limit="1" filter="visibility:members" as |posts pages|}}{{pages.total}}{{/get}}</span>)</a></h2>
+                    <p><a href="#/portal/signup">Free member signup</a>. These articles truly highlight how much North Queensland has to offer for the keen adventurer and nature lover.</p>
+                    <a class="button" href="{{@site.url}}/members/">view</a>
+                </div>
+            </div>
+        </div>
+        <div class="banner" style="background-image:url('https://images.wanderstories.space/content/images/size/w2000/2020/05/the-sisters-mountains-jodie-rummer.jpg')">
+            <div class="banner-inner">
+                <div class="banner-content">
+                    <h2 class="banner-title"><a href="{{@site.url}}/paid/">Paid Articles (<span id="paid">{{#get "posts" limit="1" filter="visibility:paid" as |posts pages|}}{{pages.total}}{{/get}}</span>)</a></h2>
+                    <p>We have a fiery passion for adventure and the great outdoors and here are some of the extra special places.</p>
+                    <a class="button" href="{{@site.url}}/paid/">view</a>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script>
+    (function () {
+        var all = parseInt(document.getElementById('all').textContent, 10);
+        var free = parseInt(document.getElementById('free').textContent, 10);
+        if (all > 0 && !isNaN(free)) {
+            document.getElementById('percentage').textContent = Math.round(free / all * 100) + '%';
+        }
+    })();
+    </script>
+
+<div class="outer">
+<div class="inner posts">
+    <h1 class="home-posts-title"><a href="{{@site.url}}/all-articles/">New Articles</a></h1>
     <div class="post-feed">
-        {{#foreach posts}}
-            {{!-- The tag below includes the markup for each post - partials/post-card.hbs --}}
-            {{> "post-card"}}
-        {{/foreach}}
+        {{#get "posts" limit="6" include="tags"}}
+            {{#if posts}}
+                {{#foreach posts}}
+                    {{> "post-card"}}
+                {{/foreach}}
+            {{/if}}
+        {{/get}}
     </div>
 
-    {{pagination}}
+    <section class="home-section">
+        <h2 class="home-section-title"><a href="https://maps.wanderstories.space/">Find Your Adventure</a></h2>
+        <div id="ws-map" style="width:100%;height:450px;"></div>
+        <script data-cfasync="false">
+        (function () {
+            var mapOptions = {divid:'ws-map',zoom:7,lat:'-18.245',lon:'146.71143',mapDownloads:false,weather:false,mapAlerts:false,defaultLayer:"outdoor",baseLayers:['outdoor','qtopo'],overlays:[]};
+            var mapStarted = false;
 
+            function initWsMap() {
+                if (mapStarted || typeof makeMap !== 'function') return false;
+                if (!document.getElementById('ws-map')) return false;
+                makeMap(mapOptions);
+                mapStarted = true;
+                return true;
+            }
+
+            function scheduleInit() {
+                if (initWsMap()) return;
+                var tries = 0;
+                var timer = setInterval(function () {
+                    if (initWsMap() || ++tries > 100) clearInterval(timer);
+                }, 100);
+            }
+
+            /* main.js loads in ghost_foot after this block — wait for scripts + stylesheets */
+            if (document.readyState === 'complete') {
+                scheduleInit();
+            } else {
+                window.addEventListener('load', scheduleInit);
+            }
+        })();
+        </script>
+    </section>
+
+    <section class="home-section">
+        <h2 class="home-section-title">Random Articles</h2>
+        <ul id="random-posts"></ul>
+        <script>
+        (function () {
+            var apiUrl = '{{@site.url}}/ghost/api/content/posts/?key={{@custom.content_api_key}}&include=tags,authors&limit=all';
+
+            function shuffleArray(array) {
+                for (var i = array.length - 1; i > 0; i--) {
+                    var j = Math.floor(Math.random() * (i + 1));
+                    var temp = array[i];
+                    array[i] = array[j];
+                    array[j] = temp;
+                }
+                return array;
+            }
+
+            fetch(apiUrl)
+                .then(function (response) { return response.json(); })
+                .then(function (data) {
+                    var list = document.getElementById('random-posts');
+                    if (!list || !data.posts) return;
+                    var displayPosts = shuffleArray(data.posts.slice()).slice(0, 3);
+                    displayPosts.forEach(function (post) {
+                        var li = document.createElement('li');
+                        var a = document.createElement('a');
+                        a.href = post.url;
+                        a.textContent = post.title;
+                        li.appendChild(a);
+                        list.appendChild(li);
+                    });
+                });
+        })();
+        </script>
+    </section>
+
+</div>
 </div>
 </main>
