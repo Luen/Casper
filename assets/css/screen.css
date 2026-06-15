@@ -3194,7 +3194,7 @@ the right place. Onward!
     text-shadow: 0 1px 6px rgba(0, 0, 0, 0.35);
 }
 
-#banners .banner--members .banner-content p {
+#banners .banner--members .banner-content p a {
     font-style: italic;
 }
 
